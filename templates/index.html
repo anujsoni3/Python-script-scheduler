@@ -1,0 +1,108 @@
+{% extends "base.html" %}
+
+{% block title %}Home - Python Script Scheduler{% endblock %}
+
+{% block content %}
+<div class="text-center">
+    <!-- Hero Section -->
+    <div class="gradient-bg rounded-2xl p-12 mb-12 text-white">
+        <div class="max-w-4xl mx-auto">
+            <h1 class="text-5xl font-bold mb-6">
+                <i class="fas fa-robot mr-4"></i>
+                Automated Python Script Scheduler
+            </h1>
+            <p class="text-xl mb-8 opacity-90">
+                Schedule, monitor, and manage your Python scripts with ease. 
+                Upload your scripts and let our system handle the execution automatically.
+            </p>
+            <div class="flex flex-col sm:flex-row gap-4 justify-center">
+                <a href="/upload" class="bg-white text-indigo-600 px-8 py-3 rounded-lg font-semibold hover:bg-gray-100 transition-colors inline-flex items-center">
+                    <i class="fas fa-upload mr-2"></i>
+                    Upload Script
+                </a>
+                <a href="/dashboard" class="border-2 border-white text-white px-8 py-3 rounded-lg font-semibold hover:bg-white hover:text-indigo-600 transition-colors inline-flex items-center">
+                    <i class="fas fa-chart-line mr-2"></i>
+                    View Dashboard
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Features Grid -->
+    <div class="grid md:grid-cols-3 gap-8 mb-12">
+        <div class="bg-white p-8 rounded-xl shadow-sm card-hover">
+            <div class="w-16 h-16 bg-blue-100 rounded-lg flex items-center justify-center mx-auto mb-6">
+                <i class="fas fa-clock text-2xl text-blue-600"></i>
+            </div>
+            <h3 class="text-xl font-semibold mb-4">Flexible Scheduling</h3>
+            <p class="text-gray-600">Schedule scripts to run daily, weekly, or monthly at specific times. Set start and end dates for complete control.</p>
+        </div>
+        
+        <div class="bg-white p-8 rounded-xl shadow-sm card-hover">
+            <div class="w-16 h-16 bg-green-100 rounded-lg flex items-center justify-center mx-auto mb-6">
+                <i class="fas fa-shield-alt text-2xl text-green-600"></i>
+            </div>
+            <h3 class="text-xl font-semibold mb-4">Safe Execution</h3>
+            <p class="text-gray-600">Scripts run in isolated environments with timeout protection and comprehensive error handling.</p>
+        </div>
+        
+        <div class="bg-white p-8 rounded-xl shadow-sm card-hover">
+            <div class="w-16 h-16 bg-purple-100 rounded-lg flex items-center justify-center mx-auto mb-6">
+                <i class="fas fa-chart-bar text-2xl text-purple-600"></i>
+            </div>
+            <h3 class="text-xl font-semibold mb-4">Detailed Monitoring</h3>
+            <p class="text-gray-600">Track execution history, view logs, and monitor performance with comprehensive reporting.</p>
+        </div>
+    </div>
+
+    <!-- Statistics Section -->
+    <div class="bg-white rounded-xl p-8 shadow-sm" id="stats-section">
+        <h2 class="text-2xl font-bold mb-8">System Overview</h2>
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
+            <div class="text-center">
+                <div class="text-3xl font-bold text-blue-600" id="total-jobs">-</div>
+                <div class="text-gray-600">Total Jobs</div>
+            </div>
+            <div class="text-center">
+                <div class="text-3xl font-bold text-green-600" id="active-jobs">-</div>
+                <div class="text-gray-600">Active Jobs</div>
+            </div>
+            <div class="text-center">
+                <div class="text-3xl font-bold text-yellow-600" id="completed-jobs">-</div>
+                <div class="text-gray-600">Completed</div>
+            </div>
+            <div class="text-center">
+                <div class="text-3xl font-bold text-red-600" id="failed-jobs">-</div>
+                <div class="text-gray-600">Failed</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Load statistics
+    async function loadStats() {
+        try {
+            const response = await fetch('/api/jobs');
+            const jobs = await response.json();
+            
+            const stats = {
+                total: jobs.length,
+                active: jobs.filter(job => job.status === 'scheduled' || job.status === 'running').length,
+                completed: jobs.filter(job => job.status === 'completed').length,
+                failed: jobs.filter(job => job.status === 'failed').length
+            };
+            
+            document.getElementById('total-jobs').textContent = stats.total;
+            document.getElementById('active-jobs').textContent = stats.active;
+            document.getElementById('completed-jobs').textContent = stats.completed;
+            document.getElementById('failed-jobs').textContent = stats.failed;
+        } catch (error) {
+            console.error('Error loading stats:', error);
+        }
+    }
+    
+    // Load stats on page load
+    document.addEventListener('DOMContentLoaded', loadStats);
+</script>
+{% endblock %}

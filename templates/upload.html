@@ -1,0 +1,210 @@
+{% extends "base.html" %}
+
+{% block title %}Upload Script - Python Script Scheduler{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto">
+    <div class="bg-white rounded-xl shadow-sm p-8">
+        <div class="text-center mb-8">
+            <h1 class="text-3xl font-bold text-gray-900 mb-4">
+                <i class="fas fa-upload text-indigo-600 mr-3"></i>
+                Upload Python Script
+            </h1>
+            <p class="text-gray-600">Upload your Python script and configure its execution schedule</p>
+        </div>
+
+        <form id="upload-form" enctype="multipart/form-data" class="space-y-6">
+            <!-- File Upload -->
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Python Script File</label>
+                <div class="file-drop-zone rounded-lg p-8 text-center" id="drop-zone">
+                    <div id="drop-zone-content">
+                        <i class="fas fa-cloud-upload-alt text-4xl text-gray-400 mb-4"></i>
+                        <p class="text-lg font-medium text-gray-700 mb-2">Drop your Python file here or click to browse</p>
+                        <p class="text-sm text-gray-500">Only .py files are accepted (max 16MB)</p>
+                    </div>
+                    <input type="file" id="script_file" name="script_file" accept=".py" class="hidden" required>
+                    <div id="file-info" class="hidden">
+                        <i class="fas fa-file-code text-4xl text-green-500 mb-4"></i>
+                        <p class="text-lg font-medium text-gray-700" id="file-name"></p>
+                        <p class="text-sm text-gray-500" id="file-size"></p>
+                        <button type="button" id="remove-file" class="mt-2 text-red-600 hover:text-red-800">
+                            <i class="fas fa-times mr-1"></i>Remove
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Job Details -->
+            <div class="grid md:grid-cols-2 gap-6">
+                <div>
+                    <label for="name" class="block text-sm font-medium text-gray-700 mb-2">Job Name</label>
+                    <input type="text" id="name" name="name" required 
+                           class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                           placeholder="Enter job name">
+                </div>
+                <div>
+                    <label for="frequency" class="block text-sm font-medium text-gray-700 mb-2">Frequency</label>
+                    <select id="frequency" name="frequency" required 
+                            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+                        <option value="daily">Daily</option>
+                        <option value="weekly">Weekly</option>
+                        <option value="monthly">Monthly</option>
+                    </select>
+                </div>
+            </div>
+
+            <div>
+                <label for="description" class="block text-sm font-medium text-gray-700 mb-2">Description (Optional)</label>
+                <textarea id="description" name="description" rows="3" 
+                         class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                         placeholder="Describe what this script does..."></textarea>
+            </div>
+
+            <!-- Schedule Settings -->
+            <div class="grid md:grid-cols-3 gap-6">
+                <div>
+                    <label for="execution_time" class="block text-sm font-medium text-gray-700 mb-2">Execution Time</label>
+                    <input type="time" id="execution_time" name="execution_time" required 
+                           class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+                </div>
+                <div>
+                    <label for="start_date" class="block text-sm font-medium text-gray-700 mb-2">Start Date</label>
+                    <input type="date" id="start_date" name="start_date" required 
+                           class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+                </div>
+                <div>
+                    <label for="end_date" class="block text-sm font-medium text-gray-700 mb-2">End Date (Optional)</label>
+                    <input type="date" id="end_date" name="end_date" 
+                           class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+                </div>
+            </div>
+
+            <!-- Submit Button -->
+            <div class="flex justify-end space-x-4">
+                <a href="/dashboard" class="px-6 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors">
+                    Cancel
+                </a>
+                <button type="submit" id="submit-btn" 
+                        class="px-6 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+                    <span id="submit-text">Upload & Schedule</span>
+                    <i id="submit-spinner" class="fas fa-spinner fa-spin ml-2 hidden"></i>
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    const dropZone = document.getElementById('drop-zone');
+    const fileInput = document.getElementById('script_file');
+    const dropZoneContent = document.getElementById('drop-zone-content');
+    const fileInfo = document.getElementById('file-info');
+    const form = document.getElementById('upload-form');
+    const submitBtn = document.getElementById('submit-btn');
+    const submitText = document.getElementById('submit-text');
+    const submitSpinner = document.getElementById('submit-spinner');
+
+    // Set default start date to today
+    document.getElementById('start_date').valueAsDate = new Date();
+
+    // File drop functionality
+    dropZone.addEventListener('click', () => fileInput.click());
+    dropZone.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        dropZone.classList.add('drag-over');
+    });
+    dropZone.addEventListener('dragleave', () => {
+        dropZone.classList.remove('drag-over');
+    });
+    dropZone.addEventListener('drop', (e) => {
+        e.preventDefault();
+        dropZone.classList.remove('drag-over');
+        const files = e.dataTransfer.files;
+        if (files.length > 0) {
+            fileInput.files = files;
+            handleFileSelect(files[0]);
+        }
+    });
+
+    fileInput.addEventListener('change', (e) => {
+        if (e.target.files.length > 0) {
+            handleFileSelect(e.target.files[0]);
+        }
+    });
+
+    function handleFileSelect(file) {
+        if (!file.name.endsWith('.py')) {
+            showToast('Please select a Python (.py) file', 'error');
+            return;
+        }
+
+        if (file.size > 16 * 1024 * 1024) {
+            showToast('File size must be less than 16MB', 'error');
+            return;
+        }
+
+        document.getElementById('file-name').textContent = file.name;
+        document.getElementById('file-size').textContent = formatFileSize(file.size);
+        dropZoneContent.classList.add('hidden');
+        fileInfo.classList.remove('hidden');
+    }
+
+    document.getElementById('remove-file').addEventListener('click', () => {
+        fileInput.value = '';
+        dropZoneContent.classList.remove('hidden');
+        fileInfo.classList.add('hidden');
+    });
+
+    function formatFileSize(bytes) {
+        if (bytes === 0) return '0 Bytes';
+        const k = 1024;
+        const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+        const i = Math.floor(Math.log(bytes) / Math.log(k));
+        return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+    }
+
+    // Form submission
+    form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        
+        if (!fileInput.files.length) {
+            showToast('Please select a Python file', 'error');
+            return;
+        }
+
+        const formData = new FormData(form);
+        
+        // Show loading state
+        submitBtn.disabled = true;
+        submitText.textContent = 'Uploading...';
+        submitSpinner.classList.remove('hidden');
+
+        try {
+            const response = await fetch('/upload', {
+                method: 'POST',
+                body: formData
+            });
+
+            const result = await response.json();
+
+            if (response.ok) {
+                showToast(result.message, 'success');
+                setTimeout(() => {
+                    window.location.href = '/dashboard';
+                }, 1500);
+            } else {
+                showToast(result.error, 'error');
+            }
+        } catch (error) {
+            showToast('Upload failed. Please try again.', 'error');
+            console.error('Upload error:', error);
+        } finally {
+            // Reset loading state
+            submitBtn.disabled = false;
+            submitText.textContent = 'Upload & Schedule';
+            submitSpinner.classList.add('hidden');
+        }
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,46 @@
+# Log files
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# Dependency directories
+node_modules/
+
+# Build output
+dist/
+dist-ssr/
+
+# Local environment files
+*.local
+.env
+
+# Python files
+config.py  # If you don’t want to commit your config, otherwise remove this
+__pycache__/
+*.py[cod]
+*.pyo
+
+# File uploads directory (temporary/user-generated content)
+uploads/
+
+# macOS files
+.DS_Store
+
+# IDE/editor settings
+.vscode/*
+!.vscode/extensions.json  # Keep recommended extensions
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# Optional: lock files (uncomment if you don’t want to commit them)
+# package-lock.json
+# yarn.lock
+# pnpm-lock.yaml
