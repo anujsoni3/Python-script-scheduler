@@ -55,50 +55,47 @@ automated-scheduler/
 ├── static/                # Custom JS/CSS
 └── README.md              # You're reading it!
 
-
+```
 🚀 Quick Start
 1️⃣ Clone the Repo
+```
 git clone https://github.com/your-username/automated-scheduler.git
 cd automated-scheduler
-
+```
 2️⃣ Install Requirements
+```
 pip install -r requirements.txt
-
+```
 3️⃣ Configure Database
 Create a MySQL database named script_scheduler.
-
 Update your config.py:
+```
 DB_CONFIG = {
     'host': 'localhost',
     'database': 'script_scheduler',
     'user': 'root',
     'password': 'your_mysql_password'
 }
+```
 4️⃣ Set Up the Tables
 Run this once to create the tables:
-
 
 # In app.py
 with app.app_context():
     db.create_all()
 
 Or use Flask-Migrate:
+```
 flask db init
 flask db migrate -m "initial"
 flask db upgrade
-
+```
 5️⃣ Launch the App
+```
 python app.py
 Navigate to: http://localhost:5000
+```
 
-📸 Screenshots
-<details> <summary>📊 Dashboard (Click to expand)</summary>
-
-</details> <details> <summary>📝 Upload Page</summary>
-
-</details> <details> <summary>📁 Job Details & Logs</summary>
-
-</details>
 🧠 How It Works
 Each uploaded script is saved to /uploads.
 Using APScheduler, we schedule jobs via CronTrigger based on:
